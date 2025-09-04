@@ -22,19 +22,22 @@ interface PaymentProcessor {
 }
 
 // Legacy paypal API
+//Adaptee 1 (Existing PayPal API)
 class PaypalGateway {
     public void makePayment(int amount) {
         System.out.println("Payment of Rs." + amount + " processed via paypal.");
     }
 }
 
-
+// Adaptee 2 (New Stripe API)
 class StripeGateway {
     public void makePayment(int amountInPaise) {
         System.out.println("Payment of Rs." + amountInPaise / 100 + " processed via stripe.");
     }
 }
 
+// Adapters
+// Adapter for PayPal
 class PaypalAdapter implements PaymentProcessor {
 
     private final PaypalGateway paypalGateway;
@@ -49,6 +52,7 @@ class PaypalAdapter implements PaymentProcessor {
     }
 }
 
+//Adapter for Stripe
 class StripeAdapter implements PaymentProcessor {
     private final StripeGateway stripeGateway;
 
@@ -62,7 +66,7 @@ class StripeAdapter implements PaymentProcessor {
     }
 }
 
-
+// Client
 class ShoppingCart{
     private final PaymentProcessor paymentProcessor;
 
