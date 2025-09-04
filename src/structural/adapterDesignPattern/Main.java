@@ -1,100 +1,80 @@
 package structural.adapterDesignPattern;
 
 public class Main {
+
     public static void main(String[] args) {
-        
-        //Plain Coffee
-        Coffee plainCoffee = new PlainCoffee();
-        System.out.println("Description: " + plainCoffee.getDescription());
-        System.out.println("Cost: $" + plainCoffee.getCost());
+        //Using Paypal
 
-        // Milk Coffee
-        Coffee milkCoffee = new MilkDecorator(new PlainCoffee());
-        System.out.println("Description: " + milkCoffee.getDescription());
-        System.out.println("Cost: $" + milkCoffee.getCost());
+        PaymentProcessor paypal= new PaypalAdapter(new PaypalGateway());
+        ShoppingCart cart1= new ShoppingCart(paypal);
+        cart1.checkout(500);
 
-        // Coffee with sugar and milk
-        Coffee sugarMilkCoffee = new SugarDecorator(new MilkDecorator(new PlainCoffee()));
-        System.out.println("Description: " + sugarMilkCoffee.getDescription());
-        System.out.println("Cost: $" + sugarMilkCoffee.getCost());
-
-
+        //using Stripe
+        PaymentProcessor stripe = new StripeAdapter(new StripeGateway());
+        ShoppingCart cart2= new ShoppingCart(stripe);
+        cart2.checkout(1200);
     }
 }
 
-// Component Interface
-interface Coffee {
-    String getDescription();
-
-    double getCost();
+// Target interface
+interface PaymentProcessor {
+    void pay(int amount);
 }
 
-// Concreate Component
-
-class PlainCoffee implements Coffee {
-
-    @Override
-    public String getDescription() {
-        return "Plain Coffee";
-    }
-
-    @Override
-    public double getCost() {
-        return 2.0;
+// Legacy paypal API
+//Adaptee 1 (Existing PayPal API)
+class PaypalGateway {
+    public void makePayment(int amount) {
+        System.out.println("Payment of Rs." + amount + " processed via paypal.");
     }
 }
 
-// Decorator
-
-abstract class CoffeeDecorator implements Coffee {
-    protected Coffee decoratedCoffee;
-
-    CoffeeDecorator(Coffee decoratedCoffee) {
-        this.decoratedCoffee = decoratedCoffee;
-    }
-
-    @Override
-    public String getDescription() {
-        return decoratedCoffee.getDescription();
-    }
-
-    @Override
-    public double getCost() {
-        return decoratedCoffee.getCost();
+// Adaptee 2 (New Stripe API)
+class StripeGateway {
+    public void makePayment(int amountInPaise) {
+        System.out.println("Payment of Rs." + amountInPaise / 100 + " processed via stripe.");
     }
 }
 
-class MilkDecorator extends CoffeeDecorator {
+// Adapters
+// Adapter for PayPal
+class PaypalAdapter implements PaymentProcessor {
 
-    MilkDecorator(Coffee decoratedCoffee) {
-        super(decoratedCoffee);
-    }
+    private final PaypalGateway paypalGateway;
 
-
-    @Override
-    public String getDescription() {
-        return decoratedCoffee.getDescription() + ", Milk";
+    PaypalAdapter(PaypalGateway paypalGateway) {
+        this.paypalGateway = paypalGateway;
     }
 
     @Override
-    public double getCost() {
-        return decoratedCoffee.getCost() + 0.5;
+    public void pay(int amount) {
+        paypalGateway.makePayment(amount);
     }
-
 }
 
-class SugarDecorator extends CoffeeDecorator {
-    SugarDecorator(Coffee decoratedCoffee) {
-        super(decoratedCoffee);
+//Adapter for Stripe
+class StripeAdapter implements PaymentProcessor {
+    private final StripeGateway stripeGateway;
+
+    StripeAdapter(StripeGateway stripeGateway) {
+        this.stripeGateway = stripeGateway;
     }
 
     @Override
-    public String getDescription() {
-        return decoratedCoffee.getDescription() + ", Sugar";
+    public void pay(int amount) {
+        stripeGateway.makePayment(amount);
+    }
+}
+
+// Client
+class ShoppingCart{
+    private final PaymentProcessor paymentProcessor;
+
+    public ShoppingCart(PaymentProcessor paymentProcessor){
+        this.paymentProcessor=paymentProcessor;
     }
 
-    @Override
-    public double getCost() {
-        return decoratedCoffee.getCost() + 0.5;
+    public void checkout(int amount){
+        paymentProcessor.pay(amount);
     }
 }

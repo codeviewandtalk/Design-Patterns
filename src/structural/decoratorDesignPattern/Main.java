@@ -1,80 +1,100 @@
 package structural.decoratorDesignPattern;
 
 public class Main {
-
     public static void main(String[] args) {
-        //Using Paypal
+        
+        //Plain Coffee
+        Coffee plainCoffee = new PlainCoffee();
+        System.out.println("Description: " + plainCoffee.getDescription());
+        System.out.println("Cost: $" + plainCoffee.getCost());
 
-        PaymentProcessor paypal= new PaypalAdapter(new PaypalGateway());
-        ShoppingCart cart1= new ShoppingCart(paypal);
-        cart1.checkout(500);
+        // Milk Coffee
+        Coffee milkCoffee = new MilkDecorator(new PlainCoffee());
+        System.out.println("Description: " + milkCoffee.getDescription());
+        System.out.println("Cost: $" + milkCoffee.getCost());
 
-        //using Stripe
-        PaymentProcessor stripe = new StripeAdapter(new StripeGateway());
-        ShoppingCart cart2= new ShoppingCart(stripe);
-        cart2.checkout(1200);
+        // Coffee with sugar and milk
+        Coffee sugarMilkCoffee = new SugarDecorator(new MilkDecorator(new PlainCoffee()));
+        System.out.println("Description: " + sugarMilkCoffee.getDescription());
+        System.out.println("Cost: $" + sugarMilkCoffee.getCost());
+
+
     }
 }
 
-// Target interface
-interface PaymentProcessor {
-    void pay(int amount);
+// Component Interface
+interface Coffee {
+    String getDescription();
+
+    double getCost();
 }
 
-// Legacy paypal API
-//Adaptee 1 (Existing PayPal API)
-class PaypalGateway {
-    public void makePayment(int amount) {
-        System.out.println("Payment of Rs." + amount + " processed via paypal.");
-    }
-}
+// Concreate Component
 
-// Adaptee 2 (New Stripe API)
-class StripeGateway {
-    public void makePayment(int amountInPaise) {
-        System.out.println("Payment of Rs." + amountInPaise / 100 + " processed via stripe.");
-    }
-}
+class PlainCoffee implements Coffee {
 
-// Adapters
-// Adapter for PayPal
-class PaypalAdapter implements PaymentProcessor {
-
-    private final PaypalGateway paypalGateway;
-
-    PaypalAdapter(PaypalGateway paypalGateway) {
-        this.paypalGateway = paypalGateway;
+    @Override
+    public String getDescription() {
+        return "Plain Coffee";
     }
 
     @Override
-    public void pay(int amount) {
-        paypalGateway.makePayment(amount);
+    public double getCost() {
+        return 2.0;
     }
 }
 
-//Adapter for Stripe
-class StripeAdapter implements PaymentProcessor {
-    private final StripeGateway stripeGateway;
+// Decorator
 
-    StripeAdapter(StripeGateway stripeGateway) {
-        this.stripeGateway = stripeGateway;
+abstract class CoffeeDecorator implements Coffee {
+    protected Coffee decoratedCoffee;
+
+    CoffeeDecorator(Coffee decoratedCoffee) {
+        this.decoratedCoffee = decoratedCoffee;
     }
 
     @Override
-    public void pay(int amount) {
-        stripeGateway.makePayment(amount);
+    public String getDescription() {
+        return decoratedCoffee.getDescription();
+    }
+
+    @Override
+    public double getCost() {
+        return decoratedCoffee.getCost();
     }
 }
 
-// Client
-class ShoppingCart{
-    private final PaymentProcessor paymentProcessor;
+class MilkDecorator extends CoffeeDecorator {
 
-    public ShoppingCart(PaymentProcessor paymentProcessor){
-        this.paymentProcessor=paymentProcessor;
+    MilkDecorator(Coffee decoratedCoffee) {
+        super(decoratedCoffee);
     }
 
-    public void checkout(int amount){
-        paymentProcessor.pay(amount);
+
+    @Override
+    public String getDescription() {
+        return decoratedCoffee.getDescription() + ", Milk";
+    }
+
+    @Override
+    public double getCost() {
+        return decoratedCoffee.getCost() + 0.5;
+    }
+
+}
+
+class SugarDecorator extends CoffeeDecorator {
+    SugarDecorator(Coffee decoratedCoffee) {
+        super(decoratedCoffee);
+    }
+
+    @Override
+    public String getDescription() {
+        return decoratedCoffee.getDescription() + ", Sugar";
+    }
+
+    @Override
+    public double getCost() {
+        return decoratedCoffee.getCost() + 0.5;
     }
 }
